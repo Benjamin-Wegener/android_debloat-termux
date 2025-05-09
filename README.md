@@ -17,7 +17,6 @@
 - 📱 Connect to your Android device wirelessly via ADB
 - 🔎 Search and filter system applications
 - 🗑️ Disable unwanted bloatware with a few taps
-- 🔄 Generates unique QR codes compatible with Android Studio wireless debugging
 - 📋 Simple and intuitive menu interface
 - 📦 Auto-installs all required dependencies
 
@@ -49,16 +48,9 @@ rm -rf debloat.sh && curl -sL https://raw.githubusercontent.com/Benjamin-Wegener
 
 The tool provides a streamlined process to:
 
-1. **Set up wireless debugging** - Generate a unique QR code that can be scanned from your Android device's Developer Options
-2. **Connect wirelessly** - Switch ADB from USB to Wi-Fi, allowing you to disconnect the cable
-3. **Filter system apps** - Search for unwanted apps by keyword
-4. **Disable bloatware** - Disable selected system apps without root access
-
-## 📸 Screenshots
-
-<p align="center">
-  <i>Coming soon</i>
-</p>
+1. **Connect wirelessly** - Switch ADB from USB to Wi-Fi, allowing you to disconnect the cable
+2. **Filter system apps** - Search for unwanted apps by keyword
+3. **Disable bloatware** - Disable selected system apps without root access
 
 ## ⚠️ Warning
 
