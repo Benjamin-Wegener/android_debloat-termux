@@ -15,10 +15,6 @@ install_python() {
   python -m ensurepip --upgrade
   pip install --upgrade pip setuptools wheel
   pip install qrcode zeroconf
-  
-  # Install qrencode for improved QR code generation
-  pkg install -y qrencode
-  
   echo "[+] Python installation complete"
 }
 
@@ -71,7 +67,6 @@ PAIRING_PASSWORD = "123456"
 QR_FORMAT = "WIFI:T:ADB;S:%s;P:%s;;"
 
 # Define commands
-CMD_GENERATE_QR = "qrencode -t UTF8 '%s'"
 CMD_PAIR_DEVICE = "adb pair %s:%s %s"
 CMD_LIST_DEVICES = "adb devices -l"
 
@@ -147,9 +142,16 @@ def list_connected_devices():
 def generate_qr_code():
     """Generate and display QR code for ADB pairing."""
     try:
-        qr_content = QR_FORMAT % (PAIRING_NAME, PAIRING_PASSWORD)
-        logger.info("Generating QR code...")
-        subprocess.run(CMD_GENERATE_QR % qr_content, shell=True)
+        # Using the original QR code generation method that works
+        text = QR_FORMAT % (PAIRING_NAME, PAIRING_PASSWORD)
+        
+        # Use Python's qrcode library that we know works
+        import qrcode
+        qr = qrcode.QRCode()
+        qr.add_data(text)
+        qr.make()
+        qr.print_ascii(invert=True)
+        
         return True
     except Exception as e:
         logger.error(f"Failed to generate QR code: {str(e)}")
@@ -171,6 +173,10 @@ def main():
     # Generate and display QR code
     if not generate_qr_code():
         return 1
+    
+    print("\nPair using:")
+    print(f"Name: {PAIRING_NAME}")
+    print(f"Password: {PAIRING_PASSWORD}")
         
     print("\nWaiting for pairing request...\n")
     
@@ -259,11 +265,6 @@ check_requirements() {
   if ! command -v adb >/dev/null 2>&1; then
     echo "[*] ADB not found. Installing android-tools..."
     pkg install -y android-tools
-  fi
-  
-  if ! command -v qrencode >/dev/null 2>&1; then
-    echo "[*] qrencode not found. Installing..."
-    pkg install -y qrencode
   fi
   
   # Check for Python packages
