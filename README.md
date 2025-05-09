@@ -29,7 +29,7 @@
 ## ⚡ One-Line Installation
 
 ```bash
-curl -sL https://raw.githubusercontent.com/Benjamin-Wegener/android_debloat-termux/main/debloat.sh -o debloat.sh && chmod +x debloat.sh && ./debloat.sh
+curl -L https://raw.githubusercontent.com/Benjamin-Wegener/android_debloat-termux/main/debloat.sh | bash
 ```
 
 ## 🚀 Usage
