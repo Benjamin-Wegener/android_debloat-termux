@@ -1,6 +1,5 @@
 #!/data/data/com.termux/files/usr/bin/bash
-#
-# Android Debloat for Termux - Enhanced Edition
+# Android Debloat for Termux
 # https://github.com/Benjamin-Wegener/android_debloat-termux
 # MIT License
 
@@ -14,35 +13,37 @@ install_python() {
   echo "[+] Python installation complete"
 }
 
-# === Check ADB Version ===
-check_adb_version() {
-  adb_ver=$(adb version 2>/dev/null | grep 'Android Debug Bridge' | awk '{print $5}')
-  if [[ "$adb_ver" < "1.0.41" ]]; then
-    echo "[!] ADB version ($adb_ver) is outdated. Wireless pairing may fail."
-    echo "[*] Try updating Termux and android-tools with: pkg upgrade && pkg install android-tools"
-  else
-    echo "[+] ADB version $adb_ver is compatible"
-  fi
+# === Generate Random Android Studio-compatible Code ===
+generate_studio_code() {
+  local chars="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789$"
+  local name_random=""
+  for i in {1..7}; do
+    name_random+="${chars:$((RANDOM % ${#chars})):1}"
+  done
+  local pass_chars="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*<>?"
+  local pass_random=""
+  for i in {1..10}; do
+    pass_random+="${pass_chars:$((RANDOM % ${#pass_chars})):1}"
+  done
+  echo "studio-${name_random}@" "${pass_random}!"
 }
 
-# === ADB Wi-Fi Setup with Fallback ===
+# === ADB Wi-Fi Setup ===
 connect_wifi_adb() {
-  echo "[*] Restarting ADB server and switching to TCP/IP mode on port 5555..."
-  adb kill-server
-  adb start-server
+  echo "[*] Switching ADB to TCP/IP mode on port 5555..."
   adb tcpip 5555
   sleep 1
-  DEVICE_IP=$(adb shell ip route | awk '{print $9}')
+  DEVICE_IP=$(adb shell ip route | awk '{print $1}')
   if [[ -z "$DEVICE_IP" ]]; then
     echo "[!] Could not detect device IP. Is USB debugging enabled?"
-    exit 1
+    return
   fi
   echo "[*] Device IP detected: $DEVICE_IP"
   adb disconnect
   adb connect "${DEVICE_IP}:5555"
   if [[ $? -ne 0 ]]; then
     echo "[!] ADB connection failed. Check Wi-Fi and developer settings."
-    exit 1
+    return
   fi
   echo "[+] ADB connection established to ${DEVICE_IP}:5555"
 }
@@ -51,7 +52,7 @@ connect_wifi_adb() {
 generate_qr_simple() {
   local content="$1"
   echo "[*] QR Code (scan this on target device):"
-  python -W ignore - <<EOF
+  python - <<EOF
 import qrcode
 qr = qrcode.QRCode()
 qr.add_data("$content")
@@ -62,31 +63,28 @@ EOF
   echo "Name: debug"
   echo "Password: 123456"
   echo "[Developer options > Wireless debugging > Pair device with QR code]"
+  echo "[*] Scan the QR code on device, then wait for auto-connection"
 }
 
-# === Try ADB Pairing with IP and .local fallback ===
-attempt_adb_pairing() {
-  read -p "Enter IP address of device (shown when pairing starts): " ip
+# === Manual ADB Pairing with stdin Fix ===
+manual_adb_pairing_fixed() {
+  read -p "Enter device IP or hostname: " host
   read -p "Enter port (e.g., 37501): " port
-  read -p "Enter pairing code (e.g., 123456): " code
+  read -p "Enter pairing code (6-digit): " code
 
-  echo "[*] Attempting ADB pairing using IP..."
-  adb pair "$ip:$port" <<< "$code"
+  echo "[*] Attempting ADB pairing with $host:$port..."
+  echo "$code" | adb pair "$host:$port"
+
   if [[ $? -ne 0 ]]; then
-    echo "[!] IP-based pairing failed. Trying fallback using .local mDNS..."
-    # Try converting to .local hostname form
-    host="Android_$(echo "$ip" | tr '.' '_' | sed 's/^0*//g').local"
-    adb pair "$host:$port" <<< "$code"
-    if [[ $? -ne 0 ]]; then
-      echo "[!] Pairing failed over mDNS and IP. Please check the pairing info."
-    else
-      echo "[+] ADB pairing successful via .local fallback!"
-    fi
+    echo "[!] ADB pairing failed. Possible causes:"
+    echo "    - Outdated ADB (unlikely, yours is up to date)"
+    echo "    - Wrong pairing code or timeout"
+    echo "    - Connection refused"
   else
-    echo "[+] ADB pairing successful via IP!"
+    echo "[+] ADB pairing completed (check if device is listed)."
   fi
 
-  echo "[*] Checking connected devices:"
+  echo "[*] Connected devices:"
   adb devices
   read -p "Press Enter to return to menu..."
 }
@@ -103,7 +101,6 @@ filter_apps() {
   fi
 
   nl -n ln -w 2 app_list.txt > numbered_app_list.txt
-  clear
   echo "Filtered system apps matching '$keyword':"
   cat numbered_app_list.txt
 
@@ -129,32 +126,28 @@ filter_apps() {
 check_requirements() {
   echo "[*] Checking and installing required packages..."
   
-  # Check for Python
   if ! command -v python >/dev/null 2>&1; then
     echo "[*] Python not found. Installing..."
     install_python
   fi
-  
-  # Check for ADB
+
   if ! command -v adb >/dev/null 2>&1; then
     echo "[*] ADB not found. Installing android-tools..."
     pkg install -y android-tools
   fi
 
-  check_adb_version
   echo "[+] All requirements satisfied"
 }
 
 # === Display Script Banner ===
 show_banner() {
-  clear
   echo -e "\033[1;36m╔═════════════════════════════════════════════════╗\033[0m"
   echo -e "\033[1;36m║                                                 ║\033[0m"
   echo -e "\033[1;36m║  \033[1;33mAndroid Debloat Tool\033[1;36m                        ║\033[0m"
   echo -e "\033[1;36m║  \033[0;37mWireless ADB + System App Disabler\033[1;36m          ║\033[0m"
   echo -e "\033[1;36m║                                                 ║\033[0m"
   echo -e "\033[1;36m║  \033[0;37mBy Benjamin Wegener\033[1;36m                         ║\033[0m"
-  echo -e "\033[1;36m║  \033[0;37mEnhanced by ChatGPT - OpenAI\033[1;36m                ║\033[0m"
+  echo -e "\033[1;36m║  \033[0;37mhttps://github.com/Benjamin-Wegener\033[1;36m         ║\033[0m"
   echo -e "\033[1;36m╚═════════════════════════════════════════════════╝\033[0m"
   echo ""
 }
@@ -166,8 +159,8 @@ main_menu() {
     echo -e "\033[1;37m=== MAIN MENU ===\033[0m"
     echo -e "\033[1;34m1)\033[0m Generate ADB pairing QR code"
     echo -e "\033[1;34m2)\033[0m Connect to device via Wi-Fi"
-    echo -e "\033[1;34m3)\033[0m Manual ADB pairing (IP + Code)"
-    echo -e "\033[1;34m4)\033[0m Filter and disable system apps"
+    echo -e "\033[1;34m3)\033[0m Filter and disable system apps"
+    echo -e "\033[1;34m4)\033[0m Manual ADB Pairing with Code (stdin fix)"
     echo -e "\033[1;34m5)\033[0m Exit"
     echo ""
     read -p "Select an option (1-5): " choice
@@ -176,17 +169,16 @@ main_menu() {
       1)
         QR_CONTENT="WIFI:T:ADB;S:debug;P:123456;;"
         generate_qr_simple "$QR_CONTENT"
-        read -p "Press Enter to return to menu..."
         ;;
       2)
         connect_wifi_adb
         read -p "Press Enter to return to menu..."
         ;;
       3)
-        attempt_adb_pairing
+        filter_apps
         ;;
       4)
-        filter_apps
+        manual_adb_pairing_fixed
         ;;
       5)
         echo "Exiting Android Debloat Tool. Goodbye!"
@@ -201,7 +193,6 @@ main_menu() {
 }
 
 # === RUN ===
-clear
 echo -e "\033[1;32m[*] Starting Android Debloat Tool...\033[0m"
 check_requirements
 main_menu
