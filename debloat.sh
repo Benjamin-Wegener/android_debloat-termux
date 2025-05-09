@@ -151,14 +151,14 @@ check_requirements() {
 
 # === Banner Display ===
 show_banner() {
-  echo -e "\033[1;36m╔═════════════════════════════════════════════════╗\033[0m"
-  echo -e "\033[1;36m║                                                 ║\033[0m"
-  echo -e "\033[1;36m║  \033[1;33mAndroid Debloat Tool\033[1;36m                        ║\033[0m"
-  echo -e "\033[1;36m║  \033[0;37mWireless ADB + System App Disabler\033[1;36m          ║\033[0m"
-  echo -e "\033[1;36m║                                                 ║\033[0m"
-  echo -e "\033[1;36m║  \033[0;37mBy Benjamin Wegener\033[1;36m                         ║\033[0m"
-  echo -e "\033[1;36m║  \033[0;37mhttps://github.com/Benjamin-Wegener\033[1;36m         ║\033[0m"
-  echo -e "\033[1;36m╚═════════════════════════════════════════════════╝\033[0m"
+  echo -e "\033[1;36m╔════════════════════════════════════════════╗\033[0m"
+  echo -e "\033[1;36m║                                            ║\033[0m"
+  echo -e "\033[1;36m║  \033[1;33mAndroid Debloat Tool\033[1;36m                     ║\033[0m"
+  echo -e "\033[1;36m║  \033[0;37mWireless ADB + System App Disabler\033[1;36m       ║\033[0m"
+  echo -e "\033[1;36m║                                            ║\033[0m"
+  echo -e "\033[1;36m║  \033[0;37mBy Benjamin Wegener\033[1;36m                      ║\033[0m"
+  echo -e "\033[1;36m║  \033[0;37mhttps://github.com/Benjamin-Wegener\033[1;36m      ║\033[0m"
+  echo -e "\033[1;36m╚════════════════════════════════════════════╝\033[0m"
   echo ""
 }
 
