@@ -23,7 +23,7 @@ show_menu() {
 # === Install Required Tools ===
 install_dependencies() {
     echo "[*] Installing required tools..."
-    pkg install -y openssh readline-utils net-tools android-tools
+    pkg install -y openssh net-tools android-tools
     echo "[+] Dependencies installed."
 }
 
