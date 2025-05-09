@@ -150,7 +150,7 @@ main_menu() {
       1)
         # Generate unique Android Studio format QR code
         read NAME PASS < <(generate_studio_code)
-        QR_CONTENT="WIFI:T:S:${NAME};P:${PASS};;"
+        QR_CONTENT="WIFI:T:ADB;S:${NAME};P:${PASS};;"
         generate_qr "$QR_CONTENT"
         echo -e "\nPair using:\nName: $NAME\nPassword: $PASS"
         echo "[Developer options > Wireless debugging > Pair device with pairing code]"
